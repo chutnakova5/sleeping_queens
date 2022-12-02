@@ -36,5 +36,5 @@ class HandPosition:
 
 
 class Position:
-    def __init__(self):
-        self.position: Union[HandPosition, SleepingQueenPosition, AwokenQueenPosition]
+    def __init__(self, pos: Union[HandPosition, SleepingQueenPosition, AwokenQueenPosition]):
+        self.position = pos
