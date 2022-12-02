@@ -1,6 +1,7 @@
-from cards import Card, CardType, Queen
 from random import shuffle
 from typing import List
+
+from cards import Card, CardType, Queen
 
 number_of_cards = {
     CardType.NUMBER: 4, CardType.KING: 8, CardType.KNIGHT: 4, CardType.POTION: 4, CardType.DRAGON: 3, CardType.WAND: 3
@@ -29,7 +30,7 @@ class DrawPile:
     def __repr__(self):
         return ', '.join(map(str, self._cards))
 
-    def draw(self, n: int) -> List[Card]:
+    def take(self, n: int) -> List[Card]:
         to_draw = self._cards[-n:]
         self._cards = self._cards[:-n]
         return to_draw
@@ -42,7 +43,7 @@ class DiscardPile:
     def __repr__(self):
         return ', '.join(map(str, self._cards))
 
-    def discard(self, to_discard: List[Card]):
+    def add(self, to_discard: List[Card]):
         self._cards.extend(to_discard)
 
 

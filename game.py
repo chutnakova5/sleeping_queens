@@ -1,7 +1,8 @@
 from typing import Set, List, Optional
-from cards import Card, Queen, QueenCollection
+
+from cards import Card, Queen
 from player import Player
-from positions import SleepingQueenPosition, AwokenQueenPosition, HandPosition, Position
+from positions import SleepingQueenPosition, AwokenQueenPosition, HandPosition, Position, QueenCollection
 from piles import DrawPile, DiscardPile
 
 
@@ -15,11 +16,12 @@ class GameState:
 
 
 class Game:
-    game_state = GameState()
-    players: List[Player] = [Player() for _ in range(game_state.number_of_players)]
-    draw_pile = DrawPile()
-    discard_pile = DiscardPile()
-    sleeping_queens = QueenCollection()
+    def __init__(self):
+        self.game_state = GameState()
+        self.players: List[Player] = [Player(self) for _ in range(self.game_state.number_of_players)]
+        self.draw_pile = DrawPile()
+        self.discard_pile = DiscardPile()
+        self.sleeping_queens = QueenCollection()
 
     def play(self, playerId: int, cards: List[Position]) -> Optional[GameState]:
         if playerId != self.game_state.on_turn:
@@ -29,3 +31,9 @@ class Game:
         if result:
             self.game_state.on_turn = (self.game_state.on_turn + 1) % self.game_state.number_of_players
             return self.game_state
+
+    def add_queen(self, queen: Queen):
+        self.sleeping_queens.addQueen(queen)
+
+    def remove_queen(self, queen: Queen):
+        self.sleeping_queens.removeQueen(queen)

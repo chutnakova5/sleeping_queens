@@ -1,8 +1,11 @@
-from Piles import DrawPile, DiscardPile
-from Cards import Card, CardType, Queen
-from Positions import HandPosition, Position
-from typing import List, Optional
-from Game import Game
+from __future__ import annotations
+from typing import List, Optional, Union, TYPE_CHECKING
+
+from cards import Card, CardType, Queen
+from positions import HandPosition, SleepingQueenPosition, AwokenQueenPosition, Position, QueenCollection
+from hand import Hand
+if TYPE_CHECKING:
+    from game import Game
 
 
 class PlayerState:
@@ -12,83 +15,93 @@ class PlayerState:
 
 
 class Player:
-    def __init__(self):
+    def __init__(self, game):
         self.player_state = PlayerState()
+        self.game = game
         self.hand = Hand(self)
+        self.awoken_queens = QueenCollection()
         self.picked_numbered_cards: List[Card] = []
 
-    def evaluate_numbered_cards(self):
-        for i in range(len(self.picked_numbered_cards)):
-            other_cards = self.picked_numbered_cards[:i] + self.picked_numbered_cards[i:]
-            sum_value = sum(map(lambda x: x.value, other_cards))
-            card_value = self.picked_numbered_cards[i].value
-            if card_value == sum_value:
-                return True
-        return False
-
     def play(self, positions: List[Position]) -> Optional[PlayerState]:
-        from_hand: List[HandPosition] = []
-        for pos in positions:
-            if type(pos.position) == HandPosition:
-                from_hand.append(pos.position)
-            else:
-                pass
-        cards_from_hand: List[Card] = self.hand.pickCards(from_hand)
-        self.picked_numbered_cards.clear()
-        for card in cards_from_hand:
-            if card.type == 'NUMBER':
-                self.picked_numbered_cards.append(card)
-        if len(self.picked_numbered_cards) == len(positions):       # vsetky zvolene karty su cisla
-            if self.evaluate_numbered_cards():                      # splnene suctove pravidlo
+        from_hand: List[HandPosition] = [
+            pos.position for pos in positions if type(pos.position) == HandPosition]
+        sleeping_queens: List[SleepingQueenPosition] = [
+            pos.position for pos in positions if type(pos.position) == SleepingQueenPosition]
+        awoken_queens: List[AwokenQueenPosition] = [
+            pos.position for pos in positions if type(pos.position) == AwokenQueenPosition]
+
+        if len(awoken_queens) == 1 and len(from_hand) == 1 and not sleeping_queens:
+            attack_pos = from_hand[0]
+            target_pos = awoken_queens[0]
+            target_queen = target_pos.getCard()
+
+            target_player = target_pos.getPlayer()
+            target_player.evaluate_attack(target_queen, attack_pos)
+            return self.player_state
+
+        if len(sleeping_queens) == 1 and len(from_hand) == 1 and not awoken_queens:
+            king = from_hand[0].getCard()
+            target_queen = sleeping_queens[0]
+            if king.get_type() == 'KING':
+                MoveQueen(target_queen, self.game, self)
                 return self.player_state
             return
-        elif len(self.picked_numbered_cards) != 0:                  # nejaky divny mix
-            return
 
+        cards_from_hand = self.hand.pickCards(from_hand)
+        self.picked_numbered_cards.clear()
+        for card in cards_from_hand:  # evaluate numbered cards
+            if card.type == 'NUMBER':
+                self.picked_numbered_cards.append(card)
+        if len(self.picked_numbered_cards) == len(positions):  # vsetky zvolene karty su cisla
+            if self.evaluate_numbered_cards():
+                self.hand.removePickedCardsAndRedraw()
+                return self.player_state
 
-class Hand:
-    def __init__(self, player: Player):
-        self.player = player
-        self.draw_pile = Game.draw_pile
-        self.discard_pile = Game.discard_pile
-        self.cards: List[HandPosition] = []
-        self.picked_positions: List[HandPosition] = []
+    def evaluate_numbered_cards(self):
+        cards = self.picked_numbered_cards
+        count = len(cards)
+        if count == 1 or (count == 2 and cards[0].get_points() == cards[1].get_points()):
+            return True
+        values = list(map(lambda x: x.value, cards))
+        cards = sorted(cards, key=lambda x: x.value)
+        if sum(cards[:-1]) == cards[-1]:
+            return True
+        # for i in range(count):
+        #     other_cards = cards[:i] + cards[i:]
+        #     sum_value = sum(map(lambda x: x.value, other_cards))
+        #     card_value = cards[i].get_points()
+        #     if card_value == sum_value:
+        #         return True
+        return False
 
-    def pickCards(self, positions: List[HandPosition]) -> Optional[List[Card]]:
-        n = len(positions)
-        self.picked_positions.clear()
-        picked_cards: List[Card] = []
-        for hand_pos in positions:
-            self.picked_positions.append(hand_pos)
-            card = hand_pos.getCard()
-            picked_cards.append(card)
-        return picked_cards
+    def evaluate_attack(self, target_queen: Queen, attack: HandPosition) -> Optional[bool]:
+        if target_queen not in self.awoken_queens:  # invalid move
+            return None
 
-    def removePickedCardsAndRedraw(self):
-        to_discard: List[Card] = []
-        for hand_pos in self.picked_positions:
-            card = hand_pos.getCard()
-            if card.type in ('NUMBER',):            # musim pozriet pravidla
-                to_discard.append(card)
+        if attack.getCard().get_type() == 'KNIGHT':
+            if self.hand.hasCardOfType('DRAGON'):
+                self.hand.removePickedCardsAndRedraw()
+                return False
             else:
-                pass
-            self.cards.remove(hand_pos)
-        self.discard_pile.discard(to_discard)
-        self.draw(len(self.picked_positions))
-        self.picked_positions.clear()
+                MoveQueen(target_queen, self, attack.getPlayer())
 
-    def draw(self, n: int):
-        to_draw: List[Card] = self.draw_pile.draw(n)
-        for card in to_draw:
-            self.cards.append(HandPosition(card, self.player))
+        if attack.getCard().get_type() == 'POTION':
+            if self.hand.hasCardOfType('WAND'):
+                self.hand.removePickedCardsAndRedraw()
+                return False
+            else:
+                MoveQueen(target_queen, self, self.game)
+        return True
 
-    def hasCardOfType(self, card_type: CardType) -> Optional[HandPosition]:
-        for hp in self.cards:
-            if card_type == hp.card.type:
-                return hp
+    def remove_queen(self, queen: Queen):
+        self.awoken_queens.removeQueen(queen)
 
-    def getCards(self) -> List[Card]:
-        cards: List[Card] = []
-        for hp in self.cards:
-            cards.append(hp.card)
-        return cards
+    def add_queen(self, queen: Queen):
+        self.awoken_queens.addQueen(queen)
+
+
+class MoveQueen:
+    def __init__(self, queen, source: Union[Player, Game], destination: Union[Player, Game]):
+        source.remove_queen(queen)
+        destination.add_queen(queen)
+
