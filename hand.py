@@ -22,8 +22,8 @@ class Hand:
         picked_cards: List[Card] = []
         for hand_pos in positions:
             if hand_pos in self.cards:
-                self.picked_cards.append(hand_pos.getCard())
-                card = hand_pos.getCard()
+                self.picked_cards.append(hand_pos.get_card())
+                card = hand_pos.get_card()
                 picked_cards.append(card)
             else:
                 self.picked_cards.clear()
@@ -33,10 +33,7 @@ class Hand:
     def removePickedCardsAndRedraw(self):
         to_discard: List[Card] = []
         for card in self.picked_cards:
-            if card.type in ('NUMBER',):            # musim pozriet pravidla
-                to_discard.append(card)
-            else:
-                pass
+            to_discard.append(card)
             self.cards.remove(card)
         self.discard_pile.add(to_discard)
         self.draw(len(self.picked_cards))

@@ -1,4 +1,4 @@
-from typing import Set, List, Optional
+from typing import Set, List, Optional, Union
 
 from cards import Card, Queen
 from player import Player
@@ -33,7 +33,7 @@ class Game:
             return self.game_state
 
     def add_queen(self, queen: Queen):
-        self.sleeping_queens.addQueen(queen)
+        self.sleeping_queens.add_queen(queen)
 
     def remove_queen(self, queen: Queen):
-        self.sleeping_queens.removeQueen(queen)
+        self.sleeping_queens.remove_queen(queen)
