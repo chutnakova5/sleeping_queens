@@ -1,4 +1,4 @@
-from typing import Set, List, Optional, Union
+from typing import Set, List, Optional
 
 from cards import Card, Queen
 from player import Player
@@ -22,6 +22,9 @@ class Game:
         self.draw_pile = DrawPile()
         self.discard_pile = DiscardPile()
         self.sleeping_queens = QueenCollection()
+
+        for player in self.players:
+            player.hand.draw(5)
 
     def play(self, playerId: int, cards: List[Position]) -> Optional[GameState]:
         if playerId != self.game_state.on_turn:

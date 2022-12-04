@@ -19,7 +19,7 @@ class Player:
         self.player_state = PlayerState()
         self.game = game
         self.hand = Hand(self)
-        self.awoken_queens = QueenCollection()
+        self.awoken_queens = QueenCollection(self)
         self.move_queen = MoveQueen(self.awoken_queens, game.sleeping_queens)
         self.picked_numbered_cards: List[Card] = []
 
