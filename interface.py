@@ -13,6 +13,7 @@ class GamePlayerInterface:
 class GameAdaptor(GamePlayerInterface):
     def __init__(self):
         self.game = Game()
+        self.observable = GameObservable()
 
     def play(self, player: str, cards: str):
         player_index: int = int(player) - 1
@@ -39,9 +40,29 @@ class GameAdaptor(GamePlayerInterface):
 
 
 class GameFinishedStrategy:
-    def is_finished(self) -> Optional[int]:
-        pass
+    pass
 
 
 class GameFinished(GameFinishedStrategy):
     pass
+
+
+class GameObserver:
+    def notify(self, message: str):
+        pass
+
+
+class GameObservable:
+    def __init__(self):
+        self.observers: List[GameObserver] = []
+        self.players: List[int] = []
+
+    def add(self, observer: GameObserver):
+        self.observers.append(observer)
+
+    def add_player(self, player_id: int, observer: GameObserver):
+        self.players.append(player_id)
+
+    def notify_all(self, message: str):
+        pass
+

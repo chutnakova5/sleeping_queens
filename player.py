@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import List, Optional, Union, TYPE_CHECKING
 
-from cards import Card, Queen
+from cards import Card, Queen, CardType
 from positions import HandPosition, SleepingQueenPosition, AwokenQueenPosition, Position, QueenCollection
 from hand import Hand
 if TYPE_CHECKING:
@@ -18,10 +18,17 @@ class Player:
     def __init__(self, game):
         self.player_state = PlayerState()
         self.game = game
-        self.hand = Hand(self)
+        self.hand = Hand(self, game.pile)
         self.awoken_queens = QueenCollection(self)
         self.move_queen = MoveQueen(self.awoken_queens, game.sleeping_queens)
         self.picked_numbered_cards: List[Card] = []
+
+    def update_player_state(self):
+        dictionary = {}
+        for x in self.hand.cards:
+            dictionary[HandPosition(x, self)] = x
+        self.player_state.cards = dictionary
+        self.player_state.awoken_queens = self.awoken_queens.get_queens()
 
     def play(self, positions: List[Position]) -> Optional[bool]:
         from_hand: List[HandPosition] = [
@@ -39,29 +46,31 @@ class Player:
                 return
             evaluate = EvaluateAttack(attack_pos, target_pos)
             if evaluate.result is True:
-                self.hand.pickCards(from_hand)
-                self.hand.removePickedCardsAndRedraw()
+                self.hand.pick_cards(from_hand)
+                self.hand.remove_picked_cards_and_redraw()
             return evaluate.result
 
         if len(sleeping_queens) == 1 and len(from_hand) == 1 and not awoken_queens:
             king = from_hand[0].get_card()
+            if king not in self.hand.cards:
+                return
             target_queen = sleeping_queens[0]
             if king.get_type() == 'KING':
                 result = self.move_queen.move(target_queen, self.awoken_queens)
                 if result is True:
-                    self.hand.pickCards(from_hand)
-                    self.hand.removePickedCardsAndRedraw()
+                    self.hand.pick_cards(from_hand)
+                    self.hand.remove_picked_cards_and_redraw()
                 return result
             return
 
-        cards_from_hand = self.hand.pickCards(from_hand)
+        cards_from_hand = self.hand.pick_cards(from_hand)
         self.picked_numbered_cards.clear()
-        for card in cards_from_hand:
-            if card.type == 'NUMBER':
+        for card in cards_from_hand or []:
+            if card.type == CardType.NUMBER:
                 self.picked_numbered_cards.append(card)
         if len(self.picked_numbered_cards) == len(positions):       # all picked cards are numbered
             if self.evaluate_numbered_cards():
-                self.hand.removePickedCardsAndRedraw()
+                self.hand.remove_picked_cards_and_redraw()
                 return True
 
     def evaluate_numbered_cards(self):
@@ -69,7 +78,7 @@ class Player:
         count = len(cards)
         if count == 1 or (count == 2 and cards[0].get_points() == cards[1].get_points()):
             return True
-        values = sorted(list(map(lambda x: x.value, cards)))
+        values = sorted(list(map(lambda x: x.get_points(), cards)))
         if sum(values[:-1], ) == values[-1]:
             return True
         return False
@@ -97,15 +106,15 @@ class EvaluateAttack:
 
     def evaluate(self):
         if self.attack_type == 'KNIGHT':
-            if self.victim_hand.hasCardOfType('DRAGON'):
-                self.victim_hand.removePickedCardsAndRedraw()
+            if self.victim_hand.has_card_of_type('DRAGON'):
+                self.victim_hand.remove_picked_cards_and_redraw()
                 return False
             else:
                 self.victim_move.move(self.target_queen, self.attacker_queens)
 
         if self.attack_type == 'POTION':
-            if self.victim_hand.hasCardOfType('WAND'):
-                self.victim_hand.removePickedCardsAndRedraw()
+            if self.victim_hand.has_card_of_type('WAND'):
+                self.victim_hand.remove_picked_cards_and_redraw()
                 return False
             else:
                 self.victim_move.move(self.target_queen)
@@ -118,7 +127,11 @@ class MoveQueen:
         self.awoken_queens = awoken_queens
         self.sleeping_queens = sleeping_queens
 
-    def move(self, position: Position, destination: Optional[QueenCollection] = None) -> bool:
+    def move(self, position: Position = None, destination: Optional[QueenCollection] = None) -> bool:
+        """
+        Player calls this method to move his awoken queen to other player's collection
+        or to wake a sleeping queen and move it to his collection.
+        """
         if position is None and destination is None:
             return False
 
@@ -126,6 +139,8 @@ class MoveQueen:
             source = self.sleeping_queens
         else:
             source = self.awoken_queens
+            if not position.get_player().awoken_queens is self.awoken_queens:
+                return False
 
         if destination is None:
             destination = self.sleeping_queens

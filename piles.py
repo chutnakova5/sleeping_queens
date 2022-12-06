@@ -7,50 +7,55 @@ number_of_cards = {
     CardType.NUMBER: 4, CardType.KING: 8, CardType.KNIGHT: 4, CardType.POTION: 4, CardType.DRAGON: 3, CardType.WAND: 3
 }
 
-queen_info = {"Rose Queen": 5, "Cake Queen": 5, "Rainbow Queen": 5, "Starfish Queen": 5,
-              "Moon Queen": 10, "Peacock Queen": 10, "Ladybug Queen": 10, "Sunflower Queen": 10,
-              "Pancake Queen": 15, "Cat Queen": 15, "Dog Queen": 15, "Heart Queen": 20}
 
-queens = []
-for name, value in queen_info.items():
-    queens.append(Queen(name, value))
-shuffle(queens)
-
-
-class DrawPile:
+class DrawingAndTrashPile:
     def __init__(self):
-        self._cards = []
+        self.draw_pile = []
+        self.trash_pile = []
+
         for card_type in CardType:
             if card_type == CardType.NUMBER:
-                self._cards += [Card(card_type, i) for i in range(1, 11) for _ in range(number_of_cards[card_type])]
+                self.draw_pile += [Card(card_type, i) for i in range(1, 11) for _ in range(number_of_cards[card_type])]
             else:
-                self._cards += [Card(card_type) for _ in range(number_of_cards[card_type])]
-        shuffle(self._cards)
+                self.draw_pile += [Card(card_type) for _ in range(number_of_cards[card_type])]
+        shuffle(self.draw_pile)
 
     def __repr__(self):
-        return ', '.join(map(str, self._cards))
+        return ', '.join(map(str, self.draw_pile))
 
-    def take(self, n: int) -> List[Card]:
-        to_draw = self._cards[-n:]
-        self._cards = self._cards[:-n]
+    def deal_cards(self, n: int) -> List[Card]:
+        return self._draw(n)
+
+    def discard_and_redraw(self, to_discard: List[Card]) -> List[Card]:
+        to_draw: List[Card] = []
+        in_draw_pile = len(self.draw_pile)
+        if len(to_discard) >= in_draw_pile:
+            return self.not_enough_cards(to_discard)
+            # return self.not_enough_cards_v2(to_discard)
+        self.discard(to_discard)
+        return self._draw(len(to_discard))
+
+    def not_enough_cards(self, to_discard: List[Card]) -> List[Card]:
+        in_draw_pile = len(self.draw_pile)
+        self.discard(to_discard)
+        to_draw = self._draw(in_draw_pile)
+        shuffle(self.trash_pile)
+        self.draw_pile = self.trash_pile[:]
+        self.trash_pile.clear()
+        to_draw.extend(self._draw(len(to_discard) - in_draw_pile))
         return to_draw
 
+    def not_enough_cards_v2(self, to_discard: List[Card]) -> List[Card]:
+        shuffle(self.trash_pile)
+        self.draw_pile = self.trash_pile[:] + self.draw_pile[:]
+        self.trash_pile.clear()
+        self.discard(to_discard)
+        return self._draw(len(to_discard))
 
-class DiscardPile:
-    def __init__(self):
-        self._cards = []
+    def discard(self, to_discard: List[Card]):
+        self.trash_pile.extend(to_discard)
 
-    def __repr__(self):
-        return ', '.join(map(str, self._cards))
-
-    def add(self, to_discard: List[Card]):
-        self._cards.extend(to_discard)
-
-
-# a = DrawPile()
-# print(a)
-# b = DiscardPile()
-# cards = a.draw(3)
-# print(cards)
-# b.discard(cards)
-# print(b)
+    def _draw(self, n: int) -> List[Card]:
+        to_draw = self.draw_pile[-n:]
+        self.draw_pile = self.draw_pile[:-n]
+        return to_draw

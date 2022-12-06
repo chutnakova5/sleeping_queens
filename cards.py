@@ -10,7 +10,7 @@ class Card:
         self._value = value
 
     def __repr__(self):
-        return self.type.name + (' ' + str(self._value))
+        return self.type.name + ' ' + str(self._value)
 
     def get_points(self):
         return self._value
@@ -27,7 +27,5 @@ class Queen:
     def get_points(self):
         return self._value
 
-
-# c = Card(CardType.NUMBER, 7)
-# print(c.get_points())
-
+    def __repr__(self):
+        return self.name + ' ' + str(self._value)

@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 
 class SleepingQueenPosition:
-    def __init__(self, card: Queen):
+    def __init__(self, card: Queen, player: None = None) -> None:
         self._card = card
 
     def get_card(self) -> Queen:
@@ -16,7 +16,7 @@ class SleepingQueenPosition:
 
 
 class AwokenQueenPosition:
-    def __init__(self, card: Queen, player: Player):
+    def __init__(self, card: Queen, player: Player) -> None:
         self._card = card
         self._player = player
 
@@ -28,7 +28,7 @@ class AwokenQueenPosition:
 
 
 class HandPosition:
-    def __init__(self, card: Card, player: Player):
+    def __init__(self, card: Card, player: Player) -> None:
         self._card = card
         self._player = player
 
@@ -43,29 +43,33 @@ Position = Union[HandPosition, SleepingQueenPosition, AwokenQueenPosition]
 
 
 class QueenCollection:
-    def __init__(self, player: Optional[Player] = None):
-        self._queens: List[Optional[Queen]] = []
+    def __init__(self, player: Optional[Player] = None) -> None:
+        self.queens: List[Optional[Queen]] = []
         self.player = player
 
-    def add_queen(self, queen: Queen):
-        self._queens.append(queen)
+    def add_queen(self, queen: Queen) -> None:
+        for i in range(len(self.queens)):
+            if self.queens[i] is None:
+                self.queens[i] = queen
+                return
+        self.queens.append(queen)
 
     def remove_queen(self, queen: Queen) -> Optional[Queen]:
-        if queen in self._queens:
-            index: int = self._queens.index(queen)
-            self._queens[index] = None
-            self._queens.remove(queen)
+        if queen in self.queens:
+            index: int = self.queens.index(queen)
+            self.queens[index] = None
             return queen
 
-    def __contains__(self, item: Queen):
-        return item in self._queens
+    def __contains__(self, item: Queen) -> bool:
+        return item in self.queens
 
-    def __getitem__(self, index):
-        return self._queens[index]
+    def __getitem__(self, index) -> Queen:
+        return self.queens[index]
 
     def get_queens(self) -> Dict[Position, Queen]:
         dct: Dict[Position, Queen] = {}
         position = AwokenQueenPosition if self.player else SleepingQueenPosition
-        for queen in self._queens:
-            dct[position(queen, self.player)] = queen
+        for queen in self.queens:
+            if queen:
+                dct[position(queen, self.player)] = queen
         return dct
