@@ -5,7 +5,7 @@ from cards import Card, Queen
 from player import Player
 from positions import SleepingQueenPosition, AwokenQueenPosition, HandPosition, Position, QueenCollection
 from piles import DrawingAndTrashPile
-from interface import GameObservable
+# from interface import GameObservable
 
 
 queen_info = {"Rose Queen": 5, "Cake Queen": 5, "Rainbow Queen": 5, "Starfish Queen": 5,
@@ -23,8 +23,8 @@ class GameState:
 
 
 class Game:
-    def __init__(self):
-        self.observable = GameObservable()
+    def __init__(self) -> None:
+        # self.observable = GameObservable()
         self.game_state = GameState()
         self.pile = DrawingAndTrashPile()
         self.sleeping_queens = QueenCollection()
@@ -38,14 +38,14 @@ class Game:
         for player in self.players:
             score = sum([queen.get_points() for queen in player.awoken_queens])
             if score >= 50:
-                self.observable.notify_all("Game finished")
+                # self.observable.notify_all("Game finished")
                 return score
             queen_count = 0
             for queen in player.awoken_queens:
                 if queen:
                     queen_count += 1
             if queen_count >= 5:
-                self.observable.notify_all("Game finished")
+                # self.observable.notify_all("Game finished")
                 return score
 
     def play(self, playerId: int, cards: List[Position]) -> Optional[GameState]:
@@ -57,12 +57,12 @@ class Game:
             self.game_state.on_turn = (self.game_state.on_turn + 1) % self.game_state.number_of_players
             return self.game_state
 
-    def add_queen(self, queen: Queen):
+    def add_queen(self, queen: Queen) -> None:
         self.sleeping_queens.add_queen(queen)
 
-    def remove_queen(self, queen: Queen):
+    def remove_queen(self, queen: Queen) -> None:
         self.sleeping_queens.remove_queen(queen)
 
-    def generate_queens(self):
+    def generate_queens(self) -> None:
         for name, value in queen_info.items():
             self.add_queen(Queen(name, value))

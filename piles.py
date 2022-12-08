@@ -1,7 +1,7 @@
 from random import shuffle
 from typing import List
 
-from cards import Card, CardType, Queen
+from cards import Card, CardType
 
 number_of_cards = {
     CardType.NUMBER: 4, CardType.KING: 8, CardType.KNIGHT: 4, CardType.POTION: 4, CardType.DRAGON: 3, CardType.WAND: 3
@@ -9,7 +9,7 @@ number_of_cards = {
 
 
 class DrawingAndTrashPile:
-    def __init__(self):
+    def __init__(self) -> None:
         self.draw_pile = []
         self.trash_pile = []
 
@@ -27,7 +27,6 @@ class DrawingAndTrashPile:
         return self._draw(n)
 
     def discard_and_redraw(self, to_discard: List[Card]) -> List[Card]:
-        to_draw: List[Card] = []
         in_draw_pile = len(self.draw_pile)
         if len(to_discard) >= in_draw_pile:
             return self.not_enough_cards(to_discard)

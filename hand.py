@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 class Hand:
-    def __init__(self, player: Player, pile: DrawingAndTrashPile):
+    def __init__(self, player: Player, pile: DrawingAndTrashPile) -> None:
         self.player = player
         # game = player.game
         self.pile = pile

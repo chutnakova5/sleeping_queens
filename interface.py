@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 
 from game import Game
 from player import Player
@@ -65,4 +65,3 @@ class GameObservable:
 
     def notify_all(self, message: str):
         pass
-

@@ -5,27 +5,27 @@ CardType = Enum('CardType', ['NUMBER', 'KING', 'KNIGHT', 'POTION', 'DRAGON', 'WA
 
 
 class Card:
-    def __init__(self, card_type: CardType, value: int = 0):
+    def __init__(self, card_type: CardType, value: int = 0) -> None:
         self.type = card_type
         self._value = value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.type.name + ' ' + str(self._value)
 
-    def get_points(self):
+    def get_points(self) -> int:
         return self._value
 
-    def get_type(self):
+    def get_type(self) -> str:
         return self.type.name
 
 
 class Queen:
-    def __init__(self, name, value):
+    def __init__(self, name: str, value: int) -> None:
         self.name = name
         self._value = value
 
-    def get_points(self):
+    def get_points(self) -> int:
         return self._value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name + ' ' + str(self._value)

@@ -269,7 +269,7 @@ class TestPlayerSociable(TestCase):
                                                    Card(CardType.DRAGON), Card(CardType.WAND))
         self.other_player.hand.cards = [number2, potion2, king2, dragon2, wand2]
 
-        self.player.hand.pile.draw_pile[-10:] = [Card(CardType.NUMBER, -1) for i in range(10)]
+        self.player.hand.pile.draw_pile[-10:] = [Card(CardType.NUMBER, -1) for _ in range(10)]
         self.assertTrue(len(self.player.hand.pile.draw_pile) == 62 - self.game.game_state.number_of_players * 5)
 
         queen1 = self.game.sleeping_queens.queens[0]
