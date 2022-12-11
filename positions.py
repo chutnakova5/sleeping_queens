@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 
 class SleepingQueenPosition:
-    def __init__(self, card: Queen, player: None = None) -> None:
+    def __init__(self, card: Queen, player: Player = None) -> None:
         self._card = card
 
     def get_card(self) -> Queen:
@@ -37,6 +37,9 @@ class HandPosition:
 
     def get_player(self) -> Player:
         return self._player
+
+    def get_type(self) -> str:
+        return self._card.get_type()
 
 
 Position = Union[HandPosition, SleepingQueenPosition, AwokenQueenPosition]
@@ -73,3 +76,6 @@ class QueenCollection:
             if queen:
                 dct[position(queen, self.player)] = queen
         return dct
+
+    def is_empty(self):
+        self.queens = [None for _ in range(len(self.queens))]

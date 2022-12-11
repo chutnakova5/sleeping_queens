@@ -11,9 +11,9 @@ class GamePlayerInterface:
 
 
 class GameAdaptor(GamePlayerInterface):
-    def __init__(self):
-        self.game = Game()
+    def __init__(self, number_of_players: int):
         self.observable = GameObservable()
+        self.game = Game(number_of_players, self.observable)
 
     def play(self, player: str, cards: str):
         player_index: int = int(player) - 1
@@ -36,7 +36,8 @@ class GameAdaptor(GamePlayerInterface):
                 queen_num: int = int(command[1]) - 1
                 queen_pos: SleepingQueenPosition = self.game.sleeping_queens[queen_num]
                 positions.append(queen_pos)
-        self.game.play(player_index, positions)
+        if self.game.play(player_index, positions) is not None:
+            self.game.update_game_state()
 
 
 class GameFinishedStrategy:
@@ -59,9 +60,11 @@ class GameObservable:
 
     def add(self, observer: GameObserver):
         self.observers.append(observer)
+        self.add_player(observer)
 
     def add_player(self, player_id: int, observer: GameObserver):
         self.players.append(player_id)
 
     def notify_all(self, message: str):
-        pass
+        for x in self.observers:
+            x.notify(message)

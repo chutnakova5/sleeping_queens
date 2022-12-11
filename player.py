@@ -50,8 +50,8 @@ class Player:
 
         if len(sleeping_queens) == 1 and len(from_hand) == 1 and not awoken_queens:
             king = from_hand[0].get_card()
-            # if king not in self.hand.cards:
-            #     return
+            if king not in self.hand.cards:
+                return
             target_queen = sleeping_queens[0]
             if king.get_type() == 'KING':
                 result = self.move_queen.move(target_queen, self.awoken_queens)
@@ -89,17 +89,20 @@ class Player:
     def add_queen(self, queen: Queen) -> None:
         self.awoken_queens.add_queen(queen)
 
+    def count_points(self) -> int:
+        return sum([queen.get_points() for queen in self.awoken_queens])
+
+    def count_queens(self) -> int:
+        return sum(map(lambda x: x is not None, self.awoken_queens))
+
 
 class EvaluateAttack:
     def __init__(self, attacker: HandPosition, victim: AwokenQueenPosition) -> None:
-        # self.attacker_hand = attacker.get_player().hand
         self.victim_hand = victim.get_player().hand
-
-        # self.attacker_move = attacker.get_player().move_queen
         self.attacker_queens = attacker.get_player().awoken_queens
         self.victim_move = victim.get_player().move_queen
 
-        self.attack_type = attacker.get_card().get_type()
+        self.attack_type = attacker.get_type()
         self.target_queen = victim
 
         self.result = self.evaluate()

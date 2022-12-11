@@ -1,11 +1,15 @@
-from typing import Set, List, Optional
+from __future__ import annotations
+
+from typing import Set, List, Optional, TYPE_CHECKING
 from random import shuffle
 
-from cards import Card, Queen
+from cards import Queen
 from player import Player
-from positions import SleepingQueenPosition, AwokenQueenPosition, HandPosition, Position, QueenCollection
+from positions import SleepingQueenPosition, AwokenQueenPosition, Position, QueenCollection
 from piles import DrawingAndTrashPile
-# from interface import GameObservable
+
+if TYPE_CHECKING:
+    from interface import GameObservable
 
 
 queen_info = {"Rose Queen": 5, "Cake Queen": 5, "Rainbow Queen": 5, "Starfish Queen": 5,
@@ -14,48 +18,61 @@ queen_info = {"Rose Queen": 5, "Cake Queen": 5, "Rainbow Queen": 5, "Starfish Qu
 
 
 class GameState:
-    number_of_players: int = 5
-    on_turn: int
-    sleeping_queens: Set[SleepingQueenPosition]
-    awoken_queens: dict[AwokenQueenPosition, Queen]
-    cards: dict[HandPosition, Optional[Card]]
-    cards_discarded_last_turn: List[Card]
+    def __init__(self, number_of_players: int, sleeping_queens: List[Queen]):
+        self.number_of_players = number_of_players
+        self.on_turn: int = 0
+        self.awoken_queens: dict[AwokenQueenPosition, Queen] = {}
+        self.sleeping_queens: Set[SleepingQueenPosition] = set()
+        for queen in sleeping_queens:
+            self.sleeping_queens.add(SleepingQueenPosition(queen))
+
+        # self.cards: dict[HandPosition, Optional[Card]]
+        # self.cards_discarded_last_turn: List[Card]
 
 
 class Game:
-    def __init__(self) -> None:
-        # self.observable = GameObservable()
-        self.game_state = GameState()
+    def __init__(self, number_of_players: int, observable: GameObservable) -> None:
+        self.observable = observable
         self.pile = DrawingAndTrashPile()
         self.sleeping_queens = QueenCollection()
-        self.generate_queens()
-        self.players: List[Player] = [Player(self) for _ in range(self.game_state.number_of_players)]
-
+        queens = self.generate_queens()
+        if number_of_players not in range(2, 6):
+            number_of_players = 2
+        self.players: List[Player] = [Player(self) for _ in range(number_of_players)]
         for player in self.players:
             player.hand.draw_new_cards()
 
-    def is_finished(self) -> Optional[int]:
-        for player in self.players:
-            score = sum([queen.get_points() for queen in player.awoken_queens])
-            if score >= 50:
-                # self.observable.notify_all("Game finished")
-                return score
-            queen_count = 0
-            for queen in player.awoken_queens:
-                if queen:
-                    queen_count += 1
-            if queen_count >= 5:
-                # self.observable.notify_all("Game finished")
-                return score
+        self.game_state = GameState(number_of_players, queens)
 
-    def play(self, playerId: int, cards: List[Position]) -> Optional[GameState]:
+    def update_game_state(self):
+        pass
+
+    def is_finished(self) -> Optional[int]:
+        if self.get_number_of_players() in (2, 3):
+            desired_points, desired_queens = 50, 5
+        else:
+            desired_points, desired_queens = 40, 4
+        score = [player.count_points() for player in self.players]
+        if self.sleeping_queens.is_empty():
+            return max(score)
+        for i, player in enumerate(self.players):
+            if score[i] >= desired_points:
+                self.observable.notify_all("Game finished")
+                return score[i]
+            queen_count = player.count_queens()
+            if queen_count >= desired_queens:
+                self.observable.notify_all("Game finished")
+                return score[i]
+        return False
+
+    def play(self, playerId: int, cards: List[Position]) -> Optional[bool]:
         if playerId != self.game_state.on_turn:
             return
         player = self.players[playerId]
         result = player.play(cards)
         if result:
-            self.game_state.on_turn = (self.game_state.on_turn + 1) % self.game_state.number_of_players
-            return self.game_state
+            self.game_state.on_turn = (self.game_state.on_turn + 1) % self.get_number_of_players()
+        return result
 
     def add_queen(self, queen: Queen) -> None:
         self.sleeping_queens.add_queen(queen)
@@ -63,6 +80,14 @@ class Game:
     def remove_queen(self, queen: Queen) -> None:
         self.sleeping_queens.remove_queen(queen)
 
-    def generate_queens(self) -> None:
+    def generate_queens(self) -> List[Queen]:
+        queens: List[Queen] = []
         for name, value in queen_info.items():
-            self.add_queen(Queen(name, value))
+            queens.append(Queen(name, value))
+        shuffle(queens)
+        for q in queens:
+            self.add_queen(q)
+        return queens
+
+    def get_number_of_players(self):
+        return self.game_state.number_of_players
