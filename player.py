@@ -90,7 +90,7 @@ class Player:
         self.awoken_queens.add_queen(queen)
 
     def count_points(self) -> int:
-        return sum([queen.get_points() for queen in self.awoken_queens])
+        return sum([queen.get_points() for queen in self.awoken_queens if queen])
 
     def count_queens(self) -> int:
         return sum(map(lambda x: x is not None, self.awoken_queens))

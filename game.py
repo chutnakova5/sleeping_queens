@@ -43,6 +43,7 @@ class Game:
             player.hand.draw_new_cards()
 
         self.game_state = GameState(number_of_players, queens)
+        self.winner: Optional[Player] = None
 
     def update_game_state(self):
         pass
@@ -54,16 +55,18 @@ class Game:
             desired_points, desired_queens = 40, 4
         score = [player.count_points() for player in self.players]
         if self.sleeping_queens.is_empty():
-            return max(score)
+            max_score = max(score)
+            i = score.index(max_score)
+            self.observable.notify_all(f"Game finished, winner: {i + 1}")
+            self.winner = self.players[i]
+            return max_score
         for i, player in enumerate(self.players):
-            if score[i] >= desired_points:
-                self.observable.notify_all("Game finished")
-                return score[i]
             queen_count = player.count_queens()
-            if queen_count >= desired_queens:
-                self.observable.notify_all("Game finished")
+            if score[i] >= desired_points or queen_count >= desired_queens:
+                self.observable.notify_all(f"Game finished, winner: {i + 1}")
+                self.winner = player
                 return score[i]
-        return False
+        return
 
     def play(self, playerId: int, cards: List[Position]) -> Optional[bool]:
         if playerId != self.game_state.on_turn:

@@ -77,5 +77,8 @@ class QueenCollection:
                 dct[position(queen, self.player)] = queen
         return dct
 
+    def count_queens(self) -> int:
+        return sum(map(lambda x: x is not None, self.queens))
+
     def is_empty(self):
-        self.queens = [None for _ in range(len(self.queens))]
+        return self.queens == [None for _ in range(len(self.queens))]
