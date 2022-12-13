@@ -142,27 +142,26 @@ class TestPlayerSociable(TestCase):
         self.assertFalse(self.player.awoken_queens.queens or self.other_player.awoken_queens.queens)
         queen1 = self.game.sleeping_queens.queens[0]
         queen2 = self.game.sleeping_queens.queens[7]
-        self.player.move_queen.move(SleepingQueenPosition(queen1), self.player.awoken_queens)
+        self.player.move_queen.wake_up(SleepingQueenPosition(queen1))
         self.assertIsNone(self.game.sleeping_queens.queens[0])
         self.assertEqual(self.player.awoken_queens.queens, [queen1])
-        self.player.move_queen.move(SleepingQueenPosition(queen2), self.player.awoken_queens)
+        self.player.move_queen.wake_up(SleepingQueenPosition(queen2))
         self.assertTrue(self.game.sleeping_queens.queens[0] is None
                         and self.game.sleeping_queens.queens[7] is None)
         self.assertTrue(len(self.game.sleeping_queens.get_queens()) == 10)
 
-        self.player.move_queen.move(AwokenQueenPosition(queen2, self.player), self.other_player.awoken_queens)
+        self.player.move_queen.move_awoken(AwokenQueenPosition(queen2, self.player), self.other_player.awoken_queens)
         self.assertEqual(self.other_player.awoken_queens.queens, [queen2])
         self.assertEqual(self.player.awoken_queens.queens, [queen1, None])
-        self.other_player.move_queen.move(AwokenQueenPosition(queen2, self.other_player), self.player.awoken_queens)
+        self.other_player.move_queen.move_awoken(AwokenQueenPosition(queen2, self.other_player), self.player.awoken_queens)
         self.assertEqual(self.player.awoken_queens.queens, [queen1, queen2])
 
     def test_move_fail(self):
         queen1 = self.game.sleeping_queens.queens[0]
         queen2 = self.game.sleeping_queens.queens[7]
-        self.player.move_queen.move(SleepingQueenPosition(queen1), self.player.awoken_queens)
-        self.assertFalse(self.player.move_queen.move(SleepingQueenPosition(queen1), self.player.awoken_queens))
-        self.assertFalse(self.player.move_queen.move())
-        self.assertFalse(self.player.move_queen.move(AwokenQueenPosition(queen2, self.other_player), self.player))
+        self.player.move_queen.wake_up(SleepingQueenPosition(queen1))
+        self.assertFalse(self.player.move_queen.wake_up(SleepingQueenPosition(queen1)))
+        self.assertFalse(self.player.move_queen.move_awoken(AwokenQueenPosition(queen2, self.other_player), self.player))
 
     def test_play(self):
         king1, knight1, knight11, potion1, dragon1 = (Card(CardType.KING), Card(CardType.KNIGHT), Card(CardType.KNIGHT),

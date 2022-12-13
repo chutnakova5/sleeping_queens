@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from typing import List, Optional, TYPE_CHECKING
-from cards import Card, CardType, Queen
-from positions import HandPosition, Position
+from cards import Card, CardType
+from positions import HandPosition
 from piles import DrawingAndTrashPile
 
 if TYPE_CHECKING:
@@ -10,14 +10,20 @@ if TYPE_CHECKING:
 
 
 class Hand:
+    """
+    Stores cards, draws and discards.
+    """
     def __init__(self, player: Player, pile: DrawingAndTrashPile) -> None:
         self.player = player
-        # game = player.game
         self.pile = pile
         self.cards: List[Card] = []
         self.picked_cards: List[Card] = []
 
     def pick_cards(self, positions: List[HandPosition]) -> Optional[List[Card]]:
+        """
+        Takes list of positions and creates list of cards that are in hand.
+        This list is temporarily stored in self.picked_cards and returned.
+        """
         self.picked_cards.clear()
         for hand_pos in positions:
             card = hand_pos.get_card()
@@ -36,6 +42,9 @@ class Hand:
         self.picked_cards.clear()
 
     def draw_new_cards(self) -> None:
+        """
+        Used at the beginning of game, draws 5 cards.
+        """
         self.cards: List[Card] = self.pile.deal_cards(5)
 
     def has_card_of_type(self, card_type: CardType) -> Optional[HandPosition]:

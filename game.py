@@ -26,9 +26,6 @@ class GameState:
         for queen in sleeping_queens:
             self.sleeping_queens.add(SleepingQueenPosition(queen))
 
-        # self.cards: dict[HandPosition, Optional[Card]]
-        # self.cards_discarded_last_turn: List[Card]
-
 
 class Game:
     def __init__(self, number_of_players: int, observable: GameObservable) -> None:

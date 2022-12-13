@@ -1,12 +1,10 @@
 from unittest import TestCase
 from unittest.mock import Mock, MagicMock
 
-from player import Player, EvaluateAttack
 from hand import Hand
 from cards import Card, CardType, Queen
-from positions import HandPosition, AwokenQueenPosition, SleepingQueenPosition
+from positions import HandPosition
 from piles import DrawingAndTrashPile
-from game import Game
 
 
 class TestHand(TestCase):
@@ -103,4 +101,3 @@ class TestHand(TestCase):
         from_hand = self.hand.has_card_of_type(card.get_type())
         self.assertEqual(from_hand.get_card().get_type(), card.get_type())
         self.assertEqual(self.hand.get_cards(), cards5)
-
