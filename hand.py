@@ -1,21 +1,36 @@
-from __future__ import annotations
-
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional
 from cards import Card, CardType
 from positions import HandPosition
 from piles import DrawingAndTrashPile
 
-if TYPE_CHECKING:
-    from player import Player
+
+class HandInterface:
+    def pick_cards(self, positions: List[HandPosition]) -> Optional[List[Card]]:
+        pass
+
+    def remove_picked_cards_and_redraw(self) -> None:
+        pass
+
+    def draw_new_cards(self) -> None:
+        pass
+
+    def has_card_of_type(self, card_type: CardType) -> Optional[HandPosition]:
+        pass
+
+    def get_cards(self) -> List[Card]:
+        return []
+
+    def __contains__(self, item: Card) -> bool:
+        return False
 
 
-class Hand:
+class Hand(HandInterface):
     """
     Stores cards, draws and discards.
     """
-    def __init__(self, player: Player, pile: DrawingAndTrashPile) -> None:
-        self.player = player
-        self.pile = pile
+    def __init__(self, player_id: int, pile: DrawingAndTrashPile) -> None:
+        self.playerID: int = player_id
+        self.pile: DrawingAndTrashPile = pile
         self.cards: List[Card] = []
         self.picked_cards: List[Card] = []
 
@@ -27,12 +42,11 @@ class Hand:
         self.picked_cards.clear()
         for hand_pos in positions:
             card = hand_pos.get_card()
-            player = hand_pos.get_player()
-            if card in self.cards and player == self.player:
+            if card in self.cards:
                 self.picked_cards.append(card)
             else:
                 self.picked_cards.clear()
-                return
+                return None
         return self.picked_cards
 
     def remove_picked_cards_and_redraw(self) -> None:
@@ -45,14 +59,15 @@ class Hand:
         """
         Used at the beginning of game, draws 5 cards.
         """
-        self.cards: List[Card] = self.pile.deal_cards(5)
+        self.cards = self.pile.deal_cards(5)
 
     def has_card_of_type(self, card_type: CardType) -> Optional[HandPosition]:
         self.picked_cards.clear()
         for card in self.cards:
-            if card_type == card.type.name:
+            if card_type == card.type:
                 self.picked_cards.append(card)
-                return HandPosition(card, self.player)
+                return HandPosition(card, self.playerID)
+        return None
 
     def get_cards(self) -> List[Card]:
         return self.cards

@@ -4,9 +4,11 @@ from typing import Set, List, Optional, TYPE_CHECKING
 from random import shuffle
 
 from cards import Queen
-from player import Player
+from player import Player, PlayerState
 from positions import SleepingQueenPosition, AwokenQueenPosition, Position, QueenCollection
 from piles import DrawingAndTrashPile
+from hand import Hand
+from evaluate import MoveQueen, EvaluateAttack
 
 if TYPE_CHECKING:
     from interface import GameObservable
@@ -35,9 +37,16 @@ class Game:
         queens = self.generate_queens()
         if number_of_players not in range(2, 6):
             number_of_players = 2
-        self.players: List[Player] = [Player(self) for _ in range(number_of_players)]
-        for player in self.players:
-            player.hand.draw_new_cards()
+
+        self.players: List[Player] = []
+        for i in range(number_of_players):
+            hand = Hand(i, self.pile)
+            awoken_queens = QueenCollection(i)
+            move_queen = MoveQueen(awoken_queens, self.sleeping_queens)
+            eval_attack = EvaluateAttack(self.players)
+            player_state = PlayerState()
+            self.players.append(Player(hand, awoken_queens, move_queen, eval_attack, player_state))
+            hand.draw_new_cards()
 
         self.game_state = GameState(number_of_players, queens)
         self.winner: Optional[Player] = None
@@ -63,11 +72,11 @@ class Game:
                 self.observable.notify_all(f"Game finished, winner: {i + 1}")
                 self.winner = player
                 return score[i]
-        return
+        return None
 
     def play(self, playerId: int, cards: List[Position]) -> Optional[bool]:
         if playerId != self.game_state.on_turn:
-            return
+            return None
         player = self.players[playerId]
         result = player.play(cards)
         if result:

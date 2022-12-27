@@ -12,14 +12,14 @@ class TestHand(TestCase):
         self.pile = DrawingAndTrashPile()
         self.fake_player = Mock()
         self.fake_pile = Mock()
-        self.hand = Hand(self.fake_player, self.pile)
+        self.hand = Hand(0, self.pile)
 
         self.cards_to_draw = [Card(CardType.NUMBER, 5), Card(CardType.NUMBER, 5), Card(CardType.NUMBER, 2),
                               Card(CardType.DRAGON, 0), Card(CardType.POTION, 0)]
         self.fake_pile.draw = MagicMock(return_value=self.cards_to_draw)
         self.fake_pile.discard_and_redraw = MagicMock(return_value=self.cards_to_draw[:3])
         self.fake_discard_pile = Mock()
-        self.solitary_hand = Hand(self.fake_player, self.fake_pile)
+        self.solitary_hand = Hand(0, self.fake_pile)
 
         self.cards = [Card(CardType.KING, 0), Card(CardType.NUMBER, 8), Card(CardType.NUMBER, 8),
                       Card(CardType.WAND, 0), Card(CardType.NUMBER, 1)]
@@ -98,6 +98,6 @@ class TestHand(TestCase):
         self.assertIsNone(self.hand.has_card_of_type(card.get_type()))
         self.assertEqual(self.hand.get_cards(), [])
         self.hand.draw_new_cards()
-        from_hand = self.hand.has_card_of_type(card.get_type())
+        from_hand = self.hand.has_card_of_type(card.type)
         self.assertEqual(from_hand.get_card().get_type(), card.get_type())
         self.assertEqual(self.hand.get_cards(), cards5)
