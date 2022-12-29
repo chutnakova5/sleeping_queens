@@ -1,5 +1,5 @@
 from random import shuffle
-from typing import List
+from typing import List, Callable
 
 from cards import Card, CardType
 
@@ -8,8 +8,48 @@ number_of_cards = {
 }
 
 
+class StrategyInterface:
+    @staticmethod
+    def not_enough_cards(self, to_discard: List[Card], draw_pile: List[Card], trash_pile: List[Card],
+                         discard: Callable, draw: Callable) -> List[Card]:
+        return [Card(CardType.NUMBER)]
+
+
+class Strategy1(StrategyInterface):
+    def not_enough_cards(self, to_discard: List[Card], draw_pile: List[Card], trash_pile: List[Card],
+                         discard: Callable, draw: Callable) -> List[Card]:
+        """
+        Version 1:
+        When there are not enough cards, the playerID throws his cards,
+        draws what he can and then shuffles the discard pile and draw remaining cards.
+        """
+        in_draw_pile = len(draw_pile)
+        discard(to_discard)
+        to_draw = draw(in_draw_pile)
+        shuffle(trash_pile)
+        draw_pile[:] = trash_pile[:]
+        trash_pile.clear()
+        to_draw.extend(draw(len(to_discard) - in_draw_pile))
+        return to_draw
+
+
+class Strategy2(StrategyInterface):
+    def not_enough_cards(self, to_discard: List[Card], draw_pile: List[Card], trash_pile: List[Card],
+                         discard: Callable, draw: Callable) -> List[Card]:
+        """
+        Version 2:
+        If there are not enough cards in the deck, shuffle the discard pile and put it under the deck,
+        then discard used cards and draw cards.
+        """
+        shuffle(trash_pile)
+        draw_pile[:] = trash_pile[:] + draw_pile[:]
+        trash_pile.clear()
+        discard(to_discard)
+        return draw(len(to_discard))
+
+
 class DrawingAndTrashPile:
-    def __init__(self) -> None:
+    def __init__(self, strategy: StrategyInterface) -> None:
         self.draw_pile: List[Card] = []         # cards will be drawn from the end of list
         self.trash_pile: List[Card] = []
 

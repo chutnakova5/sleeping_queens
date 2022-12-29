@@ -1,11 +1,10 @@
 from unittest import TestCase
 from unittest.mock import Mock, MagicMock
 
-from game import Game
-from piles import DrawingAndTrashPile
+from interface import GameAdaptor
 from player import Player
 from cards import Card, CardType, Queen
-from positions import HandPosition, AwokenQueenPosition, SleepingQueenPosition, QueenCollection
+from positions import HandPosition, AwokenQueenPosition, SleepingQueenPosition
 
 
 class TestPlayerSolitary(TestCase):
@@ -83,9 +82,10 @@ class TestPlayerSolitary(TestCase):
 
 class TestPlayerSociable(TestCase):
     def setUp(self):
-        self.game = Game(2, Mock())
-        self.pile = DrawingAndTrashPile()
-        self.sleeping_queens = QueenCollection()
+        adaptor = GameAdaptor(2)
+        self.game = adaptor.game
+        # self.pile = DrawingAndTrashPile()
+        # self.sleeping_queens = QueenCollection()
 
         self.player = self.game.players[0]
         self.other_player = self.game.players[1]

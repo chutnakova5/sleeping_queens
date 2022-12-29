@@ -1,9 +1,12 @@
 from typing import List, Optional
 
 from cards import Queen
+from evaluate import MoveQueen, EvaluateAttack
 from game import Game
-from player import Player
-from positions import Position, HandPosition, SleepingQueenPosition, AwokenQueenPosition
+from hand import Hand
+from player import Player, PlayerState
+from positions import Position, HandPosition, SleepingQueenPosition, AwokenQueenPosition, QueenCollection
+from piles import DrawingAndTrashPile, Strategy1
 
 
 class GamePlayerInterface:
@@ -17,7 +20,20 @@ class GameAdaptor(GamePlayerInterface):
     """
     def __init__(self, number_of_players: int):
         self.observable = GameObservable(number_of_players)
-        self.game = Game(number_of_players, self.observable)
+        pile = DrawingAndTrashPile(Strategy1())
+        sleeping_queens = QueenCollection()
+        if number_of_players not in range(2, 6):
+            number_of_players = 2
+        players: List[Player] = []
+        for i in range(number_of_players):
+            hand = Hand(i, pile)
+            awoken_queens = QueenCollection(i)
+            move_queen = MoveQueen(awoken_queens, sleeping_queens)
+            eval_attack = EvaluateAttack(players)
+            player_state = PlayerState()
+            players.append(Player(hand, awoken_queens, move_queen, eval_attack, player_state))
+            hand.draw_new_cards()
+        self.game = Game(number_of_players, self.observable, pile, sleeping_queens, players)
         self.finished: Optional[int] = None
 
     def play(self, player: str, cards: str):

@@ -4,12 +4,12 @@ from unittest.mock import Mock, MagicMock
 from hand import Hand
 from cards import Card, CardType, Queen
 from positions import HandPosition
-from piles import DrawingAndTrashPile
+from piles import DrawingAndTrashPile, Strategy1
 
 
 class TestHand(TestCase):
     def setUp(self) -> None:
-        self.pile = DrawingAndTrashPile()
+        self.pile = DrawingAndTrashPile(Strategy1())
         self.fake_player = Mock()
         self.fake_pile = Mock()
         self.hand = Hand(0, self.pile)
