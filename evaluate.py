@@ -3,7 +3,8 @@ from __future__ import annotations
 from typing import List, Optional, TYPE_CHECKING
 
 from cards import Queen, CardType
-from positions import HandPosition, AwokenQueenPosition, Position, QueenCollectionInterface
+from positions import HandPosition, AwokenQueenPosition, Position, QueenCollectionInterface, SleepingQueenPosition
+
 if TYPE_CHECKING:
     from player import Player
 
@@ -42,13 +43,13 @@ class EvaluateAttack(EvaluateAttackInterface):
 
 
 class MoveQueenInterface:
-    def move_awoken(self, position: Position, destination: QueenCollectionInterface) -> Optional[bool]:
+    def move_awoken(self, position: AwokenQueenPosition, destination: QueenCollectionInterface) -> Optional[bool]:
         pass
 
-    def wake_up(self, position: Position) -> Optional[bool]:
+    def wake_up(self, position: SleepingQueenPosition) -> Optional[bool]:
         pass
 
-    def put_to_sleep(self, position: Position) -> Optional[bool]:
+    def put_to_sleep(self, position: AwokenQueenPosition) -> Optional[bool]:
         pass
 
 
@@ -57,19 +58,19 @@ class MoveQueen(MoveQueenInterface):
         self.awoken_queens = awoken_queens
         self.sleeping_queens = sleeping_queens
 
-    def move_awoken(self, position: Position, destination: QueenCollectionInterface) -> Optional[bool]:
+    def move_awoken(self, position: AwokenQueenPosition, destination: QueenCollectionInterface) -> Optional[bool]:
         """
         Player calls this method to move his awoken queen to other playerID's collection.
         """
         return self._move(position.get_card(), self.awoken_queens, destination)
 
-    def wake_up(self, position: Position) -> Optional[bool]:
+    def wake_up(self, position: SleepingQueenPosition) -> Optional[bool]:
         """
         Player calls this method to wake a sleeping queen and move it to his collection.
         """
         return self._move(position.get_card(), self.sleeping_queens, self.awoken_queens)
 
-    def put_to_sleep(self, position: Position) -> Optional[bool]:
+    def put_to_sleep(self, position: AwokenQueenPosition) -> Optional[bool]:
         """
         Player calls this method to put his awoken queen back to sleep.
         """

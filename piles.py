@@ -10,13 +10,14 @@ number_of_cards = {
 
 class StrategyInterface:
     @staticmethod
-    def not_enough_cards(self, to_discard: List[Card], draw_pile: List[Card], trash_pile: List[Card],
+    def not_enough_cards(to_discard: List[Card], draw_pile: List[Card], trash_pile: List[Card],
                          discard: Callable, draw: Callable) -> List[Card]:
         return [Card(CardType.NUMBER)]
 
 
 class Strategy1(StrategyInterface):
-    def not_enough_cards(self, to_discard: List[Card], draw_pile: List[Card], trash_pile: List[Card],
+    @staticmethod
+    def not_enough_cards(to_discard: List[Card], draw_pile: List[Card], trash_pile: List[Card],
                          discard: Callable, draw: Callable) -> List[Card]:
         """
         Version 1:
@@ -34,7 +35,8 @@ class Strategy1(StrategyInterface):
 
 
 class Strategy2(StrategyInterface):
-    def not_enough_cards(self, to_discard: List[Card], draw_pile: List[Card], trash_pile: List[Card],
+    @staticmethod
+    def not_enough_cards(to_discard: List[Card], draw_pile: List[Card], trash_pile: List[Card],
                          discard: Callable, draw: Callable) -> List[Card]:
         """
         Version 2:

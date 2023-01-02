@@ -20,6 +20,9 @@ class HandInterface:
     def get_cards(self) -> List[Card]:
         return []
 
+    def set_cards(self, cards: List[Card]) -> None:
+        return None
+
     def __contains__(self, item: Card) -> bool:
         return False
 
@@ -71,6 +74,9 @@ class Hand(HandInterface):
 
     def get_cards(self) -> List[Card]:
         return self.cards
+
+    def set_cards(self, cards: List[Card]) -> None:
+        self.cards = cards[:]
 
     def __contains__(self, item: Card) -> bool:
         return item in self.cards
