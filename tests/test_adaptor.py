@@ -1,5 +1,5 @@
 from unittest import TestCase
-from interface import GameAdaptor
+from adaptor import GameAdaptor
 from cards import Card, CardType
 
 

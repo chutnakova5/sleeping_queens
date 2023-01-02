@@ -3,7 +3,7 @@ from unittest import TestCase
 from unittest.mock import Mock, MagicMock
 
 from game import Game
-from interface import GameAdaptor
+from adaptor import GameAdaptor
 from player import Player
 from cards import Card, CardType, Queen
 from positions import HandPosition, AwokenQueenPosition, SleepingQueenPosition, Position

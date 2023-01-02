@@ -9,8 +9,7 @@ from positions import SleepingQueenPosition, AwokenQueenPosition, Position, Quee
 from piles import DrawingAndTrashPile
 
 if TYPE_CHECKING:
-    from interface import GameObservable
-
+    from adaptor import GameObservable, GameFinishedStrategy
 
 queen_info = {"Rose Queen": 5, "Cake Queen": 5, "Rainbow Queen": 5, "Starfish Queen": 5,
               "Moon Queen": 10, "Peacock Queen": 10, "Ladybug Queen": 10, "Sunflower Queen": 10,
@@ -29,7 +28,7 @@ class GameState:
 
 class Game:
     def __init__(self, number_of_players: int, observable: GameObservable, pile: DrawingAndTrashPile,
-                 sleeping_queens: QueenCollection, players: List[Player]) -> None:
+                 sleeping_queens: QueenCollection, players: List[Player], game_finished: GameFinishedStrategy) -> None:
         self.observable: GameObservable = observable
         self.pile: DrawingAndTrashPile = pile
         self.sleeping_queens: QueenCollection = sleeping_queens
@@ -37,37 +36,27 @@ class Game:
         queens: List[Queen] = self.generate_queens()
         self.game_state: GameState = GameState(number_of_players, queens)
         self.winner: Optional[Player] = None
+        self.is_finished = game_finished.is_finished
 
     def update_game_state(self):
-        pass
-
-    def is_finished(self) -> Optional[int]:
-        if self.get_number_of_players() in (2, 3):
-            desired_points, desired_queens = 50, 5
-        else:
-            desired_points, desired_queens = 40, 4
-        score = [player.count_points() for player in self.players]
-        if self.sleeping_queens.is_empty():
-            max_score = max(score)
-            i = score.index(max_score)
-            self.observable.notify_all(f"Game finished, winner: {i + 1}")
-            self.winner = self.players[i]
-            return max_score
-        for i, player in enumerate(self.players):
-            queen_count = player.count_queens()
-            if score[i] >= desired_points or queen_count >= desired_queens:
-                self.observable.notify_all(f"Game finished, winner: {i + 1}")
-                self.winner = player
-                return score[i]
-        return None
+        self.game_state.on_turn = (self.game_state.on_turn + 1) % self.get_number_of_players()
+        for queen in self.sleeping_queens.get_queens():
+            if queen:
+                self.game_state.sleeping_queens.add(SleepingQueenPosition(queen))
+        for i in range(self.get_number_of_players()):
+            queens: List[Optional[Queen]] = self.players[i].awoken_queens.get_queens()
+            for queen in queens:
+                if queen:
+                    self.game_state.awoken_queens[AwokenQueenPosition(queen, i)] = queen
 
     def play(self, playerId: int, cards: List[Position]) -> Optional[bool]:
         if playerId != self.game_state.on_turn:
             return None
-        player = self.players[playerId]
-        result = player.play(cards)
-        if result:
-            self.game_state.on_turn = (self.game_state.on_turn + 1) % self.get_number_of_players()
+        player: Player = self.players[playerId]
+        result: Optional[bool] = player.play(cards)
+        if result is not None:
+            self.update_game_state()
+            self.is_finished(self)
         return result
 
     def add_queen(self, queen: Queen) -> None:

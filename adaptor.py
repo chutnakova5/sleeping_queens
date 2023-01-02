@@ -33,7 +33,7 @@ class GameAdaptor(GamePlayerInterface):
             player_state = PlayerState()
             players.append(Player(hand, awoken_queens, move_queen, eval_attack, player_state))
             hand.draw_new_cards()
-        self.game = Game(number_of_players, self.observable, pile, sleeping_queens, players)
+        self.game = Game(number_of_players, self.observable, pile, sleeping_queens, players, GameFinished())
         self.finished: Optional[int] = None
 
     def play(self, player: str, cards: str):
@@ -68,9 +68,6 @@ class GameAdaptor(GamePlayerInterface):
                 s_queen_pos: SleepingQueenPosition = SleepingQueenPosition(s_queen)
                 positions.append(s_queen_pos)
         result = self.game.play(player_index, positions)
-        if result is not None:
-            self.game.update_game_state()
-            self.finished = self.game.is_finished()
         return result
 
 
@@ -95,3 +92,32 @@ class GameObservable:
         for x in self.observers:
             if x:
                 x.notify(message)
+
+
+class GameFinishedStrategy:
+    @staticmethod
+    def is_finished(game) -> Optional[int]:
+        pass
+
+
+class GameFinished(GameFinishedStrategy):
+    @staticmethod
+    def is_finished(game) -> Optional[int]:
+        if game.get_number_of_players() in (2, 3):
+            desired_points, desired_queens = 50, 5
+        else:
+            desired_points, desired_queens = 40, 4
+        score = [player.count_points() for player in game.players]
+        if game.sleeping_queens.is_empty():
+            max_score = max(score)
+            i = score.index(max_score)
+            game.observable.notify_all(f"Game finished, winner: {i + 1}")
+            game.winner = game.players[i]
+            return max_score
+        for i, player in enumerate(game.players):
+            queen_count = player.count_queens()
+            if score[i] >= desired_points or queen_count >= desired_queens:
+                game.observable.notify_all(f"Game finished, winner: {i + 1}")
+                game.winner = player
+                return score[i]
+        return None
